@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- memberMapper.xml : 회원관련 쿼리문 -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.dao.CompanyDao">
+		<!-- 기업이 배너 신청하기 -->
+	<insert id="bannerSend1" parameterType="Banner_Board" keyProperty="b_num" useGeneratedKeys="true">
+		insert into board values(bbs_seq.nextval,#{id},#{b_title},#{b_content},3)
+		<selectKey resultType="int" keyProperty="b_num" order="AFTER">
+			<!-- after 위에 insert 쿼리문 다음에 -->
+			SELECT bbs_seq.CURRVAL FROM DUAL 
+		</selectKey>
+	</insert>
+	<insert id="bannerSend2" parameterType="Banner_Board" keyProperty="ba_num" useGeneratedKeys="true">
+		insert into ba_board values(ner_seq.nextval,#{b_num},#{ba_start},#{ba_stop},0)
+		<selectKey resultType="int" keyProperty="ba_num" order="AFTER">
+			<!-- after 위에 insert 쿼리문 다음에 -->
+			SELECT ner_seq.CURRVAL FROM DUAL 
+		</selectKey>
+	</insert>
+	<insert id="bannerSend3" parameterType="photo">
+		insert into all_photo values(ap_seq.nextval,#{oriName},#{sysName},#{ap_divide},#{ap_path},#{ap_pkNum})
+	</insert>
+		<!-- 신청하는 테이블에 실제로 값 입력 -->
+	<insert id="cRequest" parameterType="Req_msg">
+		insert into c_request values(an_seq.nextval,#{id},#{brand},#{c_tel},#{c_email},#{c_location},#{c_content},default,#{delegator})
+	</insert>
+		<!--신청 한 후에 상태값 0 => 1 로 변경 -->
+	<update id="cUpdate" parameterType="String">
+		update c_member set c_agree=1 where id=#{id}
+	</update>
+	
+	<!-- 코디 등록하기 -->
+	<insert id="cSend" parameterType="coordiSend" useGeneratedKeys="true" keyProperty="cd_num">
+   	INSERT INTO cd_send VALUES(cd_seq.NEXTVAL,#{id},#{cd_title},#{cd_content},#{cd_sit},DEFAULT,SYSDATE)
+   		<selectKey keyProperty="cd_num" resultType="int" order="AFTER" >
+   			SELECT cd_seq.CURRVAL FROM DUAL
+   		</selectKey>
+   </insert>
+   
+<!-- 코디 포토 등록  -->
+   <insert id="codyFileInsert" parameterType="photo">
+		INSERT INTO all_photo VALUES(ap_seq.NEXTVAL,#{oriName},#{sysName},#{ap_divide},#{ap_path},#{ap_pkNum})
+	</insert>
+	
+	<!-- 프로필 사진 있나 체크  -->
+	<select id="cProChk" parameterType="String" resultType="int">
+		SELECT count(*) FROM pf_photo WHERE id=#{id}
+	</select>
+	
+	<!-- 프로필 없으면 입력  -->
+	<insert id="cProInsert" parameterType="map">
+		INSERT INTO pf_photo VALUES(pf_seq.NEXTVAL,#{id},#{oriName},#{sysName})
+	</insert>
+	
+	<!-- 프로필 있으면 업데이트  -->
+	<update id="cProUpdate" parameterType="map">
+		UPDATE pf_photo SET oriName=#{oriName},sysName=#{sysName} WHERE id=#{id}
+	</update>
+	
+	<!-- 공통 테이블 수정 -->
+	<update id="cUpdateNor" parameterType="c_member">
+		UPDATE member SET pw=#{pw},intro=#{intro} where id=#{id}
+	</update>
+	
+	<!-- 일반 고유정보 테이블 수정 -->
+	<update id="cUpdateCm" parameterType="c_member">
+		UPDATE c_member SET c_name=#{c_name} where id=#{id}
+	</update>
+	
+	<!-- 공통 테이블 뽑아오기  -->
+	<select id="cNormalInfo" parameterType="String" resultType="c_member">
+		SELECT * FROM member WHERE id=#{id}
+	</select>
+	
+	<!-- 고유 테이블 뽑아요기  -->
+	<select id="cUniquInfo" parameterType="String" resultType="c_member">
+		SELECT * FROM mc_joinV WHERE id=#{id}
+	</select>
+	
+		<!-- 기업게시판 좋아요 수로 랭크 -->
+	<select id="getLikeRank" parameterType="String" resultType="b_board">
+		SELECT li.b_num,li.LikeC,li.nickname,li.b_title,brb.sysname,brb.ap_path,li.br_date,brb.comCount,brb.id,
+			RANK() OVER (ORDER BY li.LikeC ) as rk
+     			FROM likebrd li , brb_joinV brb
+     				where li.b_num = brb.b_num and brb.id=#{id}
+	</select>
+	
+		<!-- 기업게시판 댓글 수로 랭크 -->
+	<select id="getReplyRank" parameterType="String" resultType="b_board">
+		select li.b_num,li.LikeC,li.nickname,li.b_title,brb.sysname,brb.ap_path,li.br_date,brb.comCount, brb.id,
+			RANK() OVER (ORDER BY brb.comCount desc) as rk 
+				FROM likebrd li , brb_joinV brb
+     				where li.b_num = brb.b_num and brb.id=#{id}
+	</select>
+
+</mapper>

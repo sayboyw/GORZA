@@ -1,0 +1,212 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ page session="false"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>공지사항 상세보기</title>
+<script type="text/javascript" src="resources/js/jquery-2.1.1.js"></script>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="resources/css/style.css">
+<style>
+/* 공지사항 문의사항버튼 */
+#Notice {
+	padding: 20px;
+	align: center;
+	top: 10px;
+	left: 50%;
+	overflow: hidden;
+}
+
+#Contents {	
+	width: 40%;
+    float: left;
+    position: absolute;
+    height: 60%;
+    left: 34%;
+    top: 40%;
+}
+.font {
+	color: navy;
+	font-weight: 600;
+    font-size: 30px;
+    position: absolute;
+    left: 33%;
+    top: 33%;
+}
+
+#two1 {
+
+	background-color: white;
+	border: 3px solid navy;
+	border-radius: 15px 15px 15px 15px;
+	font-weight: 600;
+	padding: 5px;
+}
+#two1:hover {
+
+	color: white;
+    background-color: black;
+	border: 3px solid black;
+	border-radius: 15px 15px 15px 15px;
+	font-weight: 600;
+	padding: 5px;
+}
+#two2 {
+
+	background-color: white;
+	border: 3px solid navy;
+	border-radius: 15px 15px 15px 15px;
+	font-weight: 600;
+	padding: 5px;
+}
+#two2:hover {
+
+	color: white;
+    background-color: black;
+	border: 3px solid black;
+	border-radius: 15px 15px 15px 15px;
+	font-weight: 600;
+	padding: 5px;
+}
+#two3 {
+
+
+	background-color: white;
+	border: 3px solid navy;
+	border-radius: 15px 15px 15px 15px;
+	font-weight: 600;
+	padding: 5px;
+}
+#two3:hover {
+
+	color: white;
+    background-color: black;
+	border: 3px solid black;
+	border-radius: 15px 15px 15px 15px;
+	font-weight: 600;
+	padding: 5px;
+}
+#notice{
+	LEFT: 23%;
+	font-size: 22px;
+	position: absolute;
+    top: 368PX;
+    width: 176px;
+    height: 63px;
+    color: #0B0B3B;
+    border: 3px solid #0B0B3B;
+    border-radius: 0px 20px 0px 0px;
+    font-weight: 800;
+    padding: 13px;
+}
+#notice2{
+	LEFT: 23%;
+	font-size: 22px;
+	position: absolute;
+    top: 431PX;
+    width: 176px;
+    height: 63px;
+    color: white;
+    background-color: #0B0B3B;
+    border: 3px solid #0B0B3B;
+    border-radius: 0px 0px 20px 0px;
+    font-weight: 800;
+    padding: 13px;
+}
+#notice:hover {
+	LEFT: 23%;
+	position: absolute;
+    top: 368PX;
+    width: 176px;
+    height: 63px;
+	border-radius: 0px 20px 0px 0px;
+	background-color: #0B0B3B;
+	color: white;
+    font-weight: 800;
+    padding: 13px;
+}
+#photo{
+   width: 95%;
+    position: relative;
+    transform: translateX(2%);
+    height: 560px;
+}
+#btn .adminbtn{
+	position: relative;
+    left: 51%;
+    top: 20px;
+}
+#btn .userbtn{
+	position: relative;
+    left: 72%;
+    top: 20px;
+}
+.tablecss{
+	border: 3px solid navy;
+	border-radius: 10px 10px 10px 10px;
+	width: 80%;
+	border-collapse: inherit;
+}
+#title{
+	font-size: 21px;
+    font-weight: 800;
+    margin: auto;
+    padding: 10px;
+    color: black;
+}
+</style>
+</head>
+<body>
+<jsp:include page="loginBox.jsp"/>
+
+<div id="Notice">
+			<a id="notice" href="aQuestionF">문의사항</a><br/>
+			<a id="notice2" href="aNoticeF">공지사항</a><br/>
+	<b class="font">공지사항 상세보기</b>
+		<div id="Contents">
+			<table class="tablecss">
+				<tr>
+					<td>
+						<div id="title">제목 : ${nDetail.no_title}</div> &nbsp;&nbsp;&nbsp;&nbsp;
+						<div align="right" style="font-size: 15px;left: -10px;position:  relative;font-weight: 600;"> 작성날짜 : ${nDetail.no_date} &nbsp;&nbsp; 조회수 : ${nDetail.no_hit} </div>
+						<br/><br/><br/>
+						<c:if test="${noticePhoto!=null}">
+							<div>
+								<img id="photo" src="./${noticePhoto}" alt="이미지"><br/><br/>
+							</div>
+						</c:if>
+						<div id="content" style="position:  relative;font-size: 15px;font-weight: 600;left: 15px;">내용 : ${nDetail.no_content}</div><br/><br/><br/>
+					</td>
+				</tr>
+		</table>
+		<div id="btn">
+			<c:choose>
+				<c:when test="${state == '2'}">
+					<a id="two1" class="adminbtn" href="aNoticeUpdateF?no_num=${nDetail.no_num}">수정하기</a>
+					<a id="two2" class="adminbtn" href="aNoticeDel?no_num=${nDetail.no_num }">삭제하기</a>
+					<a id="two3" class="adminbtn" href='aNoticeF'>뒤로</a>
+				</c:when>
+				<c:otherwise>
+					<a id="two3" class="userbtn" href='aNoticeF'>뒤로</a>
+				</c:otherwise>
+			</c:choose>
+		</div>
+	</div>
+</div>
+</body>
+<script>
+var msg = "${msg}";
+
+if(msg != ""){
+    alert(msg);
+    location.href="aNoticeF";
+}
+
+
+
+	
+</script>
+</html>

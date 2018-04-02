@@ -1,0 +1,192 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+   <head>
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="author" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<script type="text/javascript" src="resources/js/jquery-2.1.1.js"></script>
+
+<link rel="stylesheet" href="resources/css/bootstrap.min.css">
+<link rel="stylesheet" href="resources/css/font-awesome.min.css">
+<script src="resources/js/jquery.js"></script>
+<script src="resources/js/bootstrap.min.js"></script>
+<script src="resources/js/custom.js"></script>
+<!-- Main css -->
+<link rel="stylesheet" href="resources/css/style.css">
+<link href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,700" rel="stylesheet">
+<style>
+#logo {
+	width: 35%;
+}
+
+#div2 {
+	position: absolute;
+	left: 20%;
+}
+
+#portfolio {
+	padding-top: 0px;
+}
+
+#home {
+	padding-bottom: 0px;
+}
+
+#menubar1 {
+	margin: auto;
+}
+
+.round {
+	margin: auto;
+	border-radius: 50%;
+	width: 120px;
+	height: 120px;
+	background-image: url("resources/images/profile.png");
+	background-size: 100% 100%;
+}
+
+#myself {
+	margin: auto;
+	width: 400px;
+	height: 100px;
+}
+
+.nav-tabs .nav-link {
+	width: 180px;
+	color: #6E6E6E;
+	border-color: #D8D8D8 #D8D8D8 #F2F2F2 #D8D8D8;
+	border-radius: 7px 7px 0px 0px;
+	text-align: center;
+	font-size: 15px;
+}
+
+.nav-link.active {
+	color: #6E6E6E;
+}
+
+.nav-tabs .nav-link:hover {
+	color: #6E6E6E;
+	background-color: #E6E6E6;
+	border-color: #BDBDBD #BDBDBD #D8D8D8 #BDBDBD;
+	border-radius: 10px 10px 0px 0px;
+}
+
+.nav-link.active:hover {
+	border-color: #D8D8D8 #D8D8D8 #FFFFFF #BDBDBD;
+	border-radius: 5px 5px 0px 0px;
+}
+
+#articleView_layer {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%
+}
+
+#articleView_layer.open {
+	display: block;
+	color: red
+}
+
+#articleView_layer #bg_layer {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 5000px;
+	background: #000;
+	opacity: .3;
+	filter: alpha(opacity = 50);
+	z-index: 9990;
+}
+
+#contents_layer {
+	position: fixed;
+	top: 30%;
+	left: 36%;
+	width: 500px;
+	height: 500px;
+	margin: auto;
+	padding: 28px 28px 0 28px;
+	background: #fff;
+	font-size: 12px;
+	z-index: 9999;
+	color: #767676;
+	line-height: normal;
+	white-space: normal;
+	overflow: scroll
+}
+      #loginDiv{
+      position : absolute;
+         left: 43%;
+         top: 30%;
+      }
+      table,tr,td{
+      	padding:5px;
+      }
+      #loginBtn{
+      	background-color: #8794A3;
+      	color: white;
+      }
+   </style>
+</head>
+<body>
+   <body>
+<jsp:include page="loginBox.jsp"/>
+<!-- 로그인박스영역 -->
+				<div id='loginDiv'>
+				<div class="section-title">
+                         <h3 style="text-align : center; font-size: 22px">Welcome to GORZA</h3>
+                    </div>
+					<form action="mLogin"  name="loginForm" method="post" id="mLogin">
+						<table>
+							<tr>
+								<td><input class="form-control" placeholder="ID" style="width: 100%" type="text" name="id" id="id" onkeypress="if( event.keyCode==13 ){mLogin();}"/></td>
+								<td rowspan="2" ><input type="button" class="form-control" id="loginBtn"
+									onclick="mLogin()" value="Login" style="height: 90px" /></td>
+							</tr>
+							<tr>
+								<td><input class="form-control" placeholder="Password" style="width: 100%" type="password" name="pw"
+									onkeypress="if( event.keyCode==13 ){mLogin();}" id="pw" /></td>
+							</tr>
+							<tr>
+								<td align="center">
+								<a href="mJoinTypeF">회원가입</a> 
+								&nbsp;<a href="mFindF">아이디/비밀번호	찾기</a>
+								</td>
+							</tr>
+						</table>
+					</form>
+				</div>
+</body>
+<script>
+   
+   var msg = "${msg}";
+   if(msg != ""){
+      alert(msg);
+   }
+   
+   function mLogin(){
+	   var idVal = $("#id").val();
+	      var pwVal = $("#pw").val();
+	      
+	      if(idVal == ""){
+	         alert("아이디를 입력해주세요");
+	      }else if(pwVal==""){
+	         alert("비밀번호를 입력해주세요");
+	      }else{
+	         $("#mLogin").submit();
+	      }
+   }
+</script>
+</html>

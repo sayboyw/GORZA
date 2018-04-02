@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- memberMapper.xml : 회원관련 쿼리문 -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.dao.qnDao">
+
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->	
+	
+	<!-- 문의사항 리스트 -->
+	<select id="questionBoardList" parameterType="int" resultType="qnaB">
+	   <![CDATA[ 
+	      SELECT * FROM qnab_joinV WHERE rnum>=#{pageNum}*9-8 AND rnum<=#{pageNum}*9
+	      ]]>
+   	</select>
+   	<!-- 문의사항 페이징 번호 -->
+	<select id="getBoardCount" resultType="int">
+		SELECT COUNT(*) FROM qnab_join
+	</select>
+   	<!-- 문의사항 상세보기 -->
+	<select id="getContents2" parameterType="int" resultType="qnaB">
+		SELECT * FROM qnab_join WHERE b_num=#{b_num}
+	</select>
+	<!-- 문의사항 상세보기 파일보기-->
+	<select id="qnabPhoto" parameterType="int" resultType="String">
+	   	SELECT ap_path FROM all_photo WHERE ap_num=(SELECT MIN(ap_num) FROM all_photo WHERE ap_pkNum=#{b_num})
+	</select>
+	
+	<!-- 문의사항 글쓰기 -->
+ 	<insert id="qnabSend1" parameterType="qnab" useGeneratedKeys="true" keyProperty="b_num">
+		INSERT INTO board VALUES(bbs_seq.NEXTVAL,#{id},#{b_title},#{b_content},2)
+		<selectKey resultType="int" keyProperty="b_num" order="AFTER">
+			SELECT bbs_seq.CURRVAL FROM DUAL 
+		</selectKey>
+	</insert>
+	<!-- 문의사항 글쓰기2 -->   
+	<insert id="qnabSend2" parameterType="qnaB">
+		INSERT INTO qna_board VALUES(#{b_num},#{rp_reason},1,DEFAULT,null,1,#{b_num},null)
+	</insert>
+	<!-- 문의사항 글쓰기 파일업로드3-->
+	<insert id="qnabSend3" parameterType="photo">
+		INSERT INTO all_photo VALUES(ap_seq.NEXTVAL,#{oriName},#{sysName},5,#{ap_path},#{ap_pkNum})
+	</insert>
+	
+	<!-- 문의사항 삭제 -->
+ 	<delete id="bReqDel" parameterType="int">
+   		DELETE FROM qna_board WHERE b_num=#{b_num}
+   	</delete>
+	<!-- 문의사항 파일삭제 리스트 -->
+	<select id="filebReqDelList" parameterType="int" resultType="photo">
+		SELECT * FROM all_photo WHERE ap_num=#{b_num}
+	</select>
+	<!-- 문의사항 파일삭제 -->
+   	<delete id="filebReqDel" parameterType="int">
+   		DELETE FROM all_photo WHERE ap_num=#{b_num}
+   	</delete>
+	 
+	<!-- 문의사항 글수정하기-->
+	<update id="aQuestionUpdate" parameterType="b_board">
+  		UPDATE board SET b_title=#{b_title},b_content=#{b_content} WHERE b_num=#{b_num}
+   	</update>
+   	<update id="aQuestionUpdate2" parameterType="qnaB">
+  		UPDATE qna_board SET rp_reason=#{rp_reason} WHERE b_num=#{b_num}
+   	</update>
+	<!-- 문의사항 파일수정하기 -->
+	<update id="questionfileUpdate" parameterType="map">
+		UPDATE all_photo SET oriName=#{oriName},sysName=#{sysName},ap_path=#{ap_path} WHERE ap_pkNum = #{ap_pkNum}
+	</update>
+	
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+   	<!-- 문의사항 답글쓰기 -->
+   	<insert id="qnabReSend1" parameterType="qnaB" keyProperty="b_num" useGeneratedKeys="true">
+		INSERT INTO board VALUES(bbs_seq.NEXTVAL,#{id},#{b_title},#{b_content},2)
+		<selectKey resultType="int" keyProperty="b_num" order="AFTER">
+			SELECT bbs_seq.CURRVAL FROM DUAL
+		</selectKey>
+	</insert>
+	
+	<!-- 문의사항 답글쓰기2 -->
+	<insert id="qnabReSend2" parameterType="qnaB">
+		INSERT INTO qna_board VALUES(#{b_num},#{rp_reason},2,DEFAULT,null,#{group_num},#{group_num},#{write_id})
+	</insert>
+	
+	<!-- 문의사항 글쓰기 파일업로드3-->
+	<insert id="qnabReSend3" parameterType="photo">
+		INSERT INTO all_photo VALUES(ap_seq.NEXTVAL,#{oriName},#{sysName},6,#{ap_path},#{ap_pkNum})
+	</insert>
+	
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+   	
+	<!-- 공지사항 리스트 -->
+	<select id="noticeBoardList" parameterType="int" resultType="notice">
+		 <![CDATA[ 
+	      SELECT * FROM noticeV WHERE rnum>=#{pageNum}*9-8 AND rnum<=#{pageNum}*9
+	      ]]>
+	</select>
+	<!-- 문의사항 페이징 번호 -->
+	<select id="noticeBoardCount" resultType="int">
+		SELECT COUNT(*) FROM notice
+	</select>
+	<!-- 공지사항 상세보기 -->
+	<select id="getContents" parameterType="int" resultType="notice">
+		SELECT * FROM notice WHERE no_num=#{no_num}
+	</select>
+	<!-- 공지사항 상세보기 파일보기-->
+	<select id="noticePhoto" parameterType="int" resultType="String">
+	   	SELECT ap_path FROM all_photo WHERE ap_pkNum = #{no_num} AND ap_divide = 7
+	</select>
+	<!-- 공지사항 조회수 올리기 -->
+	<update id="hitUp" parameterType="int">
+		UPDATE notice SET no_hit = no_hit+1 WHERE no_num=#{no_num}
+	</update>
+	<!-- 공지사항 파일삭제 리스트 -->
+	<select id="getFileList" parameterType="int" resultType="photo">
+		SELECT * FROM all_photo WHERE ap_num=#{no_num}
+	</select>
+	<!-- 공지사항 파일삭제 -->
+   	<delete id="fileDelete" parameterType="int">
+   		DELETE FROM all_photo WHERE ap_num=#{no_num}
+   	</delete>
+   	<!-- 공지사항 삭제 -->
+ 	<delete id="aNoticeDel" parameterType="int">
+   		DELETE FROM notice WHERE no_num=#{no_num}
+   	</delete>
+	<!-- 공지사항 글쓰기 -->
+ 	<insert id="noticeSend" parameterType="notice" useGeneratedKeys="true" keyProperty="no_num">
+   		INSERT INTO notice VALUES(no_seq.NEXTVAL,#{no_title},#{no_content},DEFAULT,DEFAULT)
+		<selectKey keyProperty="no_num" resultType="int" order="AFTER" >
+			SELECT no_seq.CURRVAL FROM DUAL
+		</selectKey>
+  	</insert>
+  	<!-- 공지사항 글쓰기 파일업로드-->
+   	<insert id="noticeSend2" parameterType="photo">
+  		INSERT INTO all_photo VALUES(ap_seq.NEXTVAL,#{oriName},#{sysName},7,#{ap_path},#{ap_pkNum})
+	</insert>
+	
+	<!-- 공지사항 글수정하기-->
+	<update id="aNoticeUpdate" parameterType="notice">
+  		UPDATE notice SET no_title=#{no_title},no_content=#{no_content} WHERE no_num=#{no_num}
+   	</update>
+	<!-- 공지사항 수정하기 -->
+	<update id="noticefileUpdate" parameterType="map">
+		UPDATE all_photo SET oriName=#{oriName},sysName=#{sysName},ap_path=#{ap_path} WHERE ap_pkNum = #{ap_pkNum}
+	</update>
+	
+	<!-- 공지사항 수정용 파일 체크 -->
+	<select id="noticefileUpdateChk" parameterType="photo" resultType="int">
+		SELECT COUNT(*) FROM all_photo WHERE ap_divide = 7 AND ap_pkNum = #{ap_pkNum}
+	</select>
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+</mapper>

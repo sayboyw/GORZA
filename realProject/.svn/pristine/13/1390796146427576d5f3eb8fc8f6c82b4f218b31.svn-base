@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<annotation-driven />
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<resources mapping="/resources/**" location="/resources/" />
+	<resources mapping="/js/**" location="/WEB-INF/views/js/" />
+	<resources location="/WEB-INF/views/css/" mapping="/css/**"  />
+	<resources location="/WEB-INF/views/img/" mapping="/img/**"  />
+	<!-- 반드시 webapp/resources 폴더에 생성한다. -->
+	
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />
+	</beans:bean>
+	
+	<context:component-scan base-package="com.board.*" />
+	
+	<!-- Spring JNDI : DBCP -->
+	<!-- <beans:bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<beans:property name="jndiName" value="jdbc/OracleDB"/>
+		<beans:property name="resourceRef" value="true"/>
+	</beans:bean> -->
+	
+	<!-- DriverManager : connection 1개로 사용  -->
+	<beans:bean id="dataSource" 
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<beans:property name="driverClassName" value="net.sf.log4jdbc.DriverSpy"/>
+		<beans:property name="url" value="jdbc:log4jdbc:oracle:thin:@localhost:1521:XE"/>
+		<beans:property name="username" value="web_user"/>
+		<beans:property name="password" value="pass"/>
+	</beans:bean>
+
+	<!-- 트랜잭션  -->
+	<tx:annotation-driven transaction-manager="txManager" proxy-target-class="true" />
+	<beans:bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<beans:property name="dataSource" ref="dataSource" />
+	</beans:bean>
+	<!-- @Transactional 사용하기 위해, 반드시 servlet-context.xml에 설정해야 됨 -->
+	
+	
+
+	
+	
+	<!-- <tx:annotation-driven/> -->
+	  
+  <!-- sqlSessionFactory :: Mybatis가 사용 -->
+  <beans:bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  	<beans:property name="dataSource" ref="dataSource"/>
+  	
+  	<beans:property name="configLocation" value="classpath:com/board/dao/mybatis-conf.xml"/>
+  	<!-- 패키지 이름 길게 썼던거 방지 mybatis 환경설정-->
+  	
+  	<beans:property name="mapperLocations"
+  		value="classpath:com/board/dao/mapper/*.xml"/>    
+  	</beans:bean>
+  	
+  	<!-- mybatis 템플릿 (java - interface - xml)-->
+    <beans:bean id="myBatisMapper" class="org.mybatis.spring.SqlSessionTemplate">
+        <beans:constructor-arg index="0" ref="sqlSessionFactory"/>
+    </beans:bean>
+ 		<!-- 목적 : 생성자가 실행되면서 인덱스 번호 순으로 실행시키기 위함 -->
+  	
+  	
+  <!--  
+  db랑 spring 연결하기위한 session빈 생성 
+  dataSource라는 필드에 위에서 선언해준 DBCP (dataSource)를 값으로 참조..ref
+  mapperLocations의 경로대로 폴더랑 파일 생성해줘야함
+   -->
+
+  <!-- DAO using 개발자가 사용할 꺼 -->
+
+  <beans:bean id="mDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+  	<beans:property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+  	<beans:property name="mapperInterface">
+  		<beans:value>com.board.dao.ImemberDao</beans:value>
+  	</beans:property>
+  </beans:bean>
+  
+  <beans:bean id="bDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+  	<beans:property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+  	<beans:property name="mapperInterface" value="com.board.dao.IboardDao"/>
+  </beans:bean>
+  
+  <beans:bean id="aDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+  	<beans:property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+  	<beans:property name="mapperInterface">
+  		<beans:value>com.board.dao.AdminDao</beans:value>
+  	</beans:property>
+  </beans:bean>
+
+<beans:bean id="cDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+  	<beans:property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+  	<beans:property name="mapperInterface">
+  		<beans:value>com.board.dao.CompanyDao</beans:value>
+  	</beans:property>
+  </beans:bean>
+  
+  <beans:bean id="qnDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+  	<beans:property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+  	<beans:property name="mapperInterface">
+  		<beans:value>com.board.dao.qnDao</beans:value>
+  	</beans:property>
+  </beans:bean>
+  <!-- 
+  파일 첨부(Multipart Resolver 설정) :
+  form태그 enctype="multipart/form-data"인 경우 서버의 Bean으로 전달해줌
+   -->
+   <beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+   	<beans:property name="defaultEncoding" value="UTF-8" /> <!-- 한글파일명 -->
+   	<beans:property name="maxUploadSize" value="10000000" /> <!-- 필수 10MB  -->
+   	<beans:property name="maxInMemorySize" value="10000000" />
+   </beans:bean>
+
+   <!-- Session InterCeptor  -->
+  <interceptors>
+  	<interceptor>
+  	<!-- mapping의 모든 요청은 controller에 도착하기 전에 가로챈다 * 사용 --> 
+  		<mapping path="/mMyPageF"/> <!-- 가로채기 시전할 url  -->
+  		<mapping path="/myStyle"/> <!-- 가로채기 시전할 url  -->
+  		<mapping path="/bDetail"/> <!-- 가로채기 시전할 url  -->
+  		<!-- exclude-mapping의 요청은 가로채지 않는다.  -->
+  		<!-- <exclude-mapping path="/"/>
+  		<exclude-mapping path="/access"/>
+  		<exclude-mapping path="/joinForm"/>
+  		<exclude-mapping path="/boardList"/>
+		<exclude-mapping path="/memberInsert"/> -->
+  		<beans:bean class="com.board.userClass.SessionInterceptor"/>
+  	</interceptor>
+  </interceptors>
+
+</beans:beans>

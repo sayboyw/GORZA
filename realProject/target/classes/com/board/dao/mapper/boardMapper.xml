@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- boardMapper.xml:게시판 관련 쿼리문 -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.dao.IboardDao">
+
+<!-- 인기순 게시글 리스트  -->
+<select id="getLikeBoardList" parameterType="int" resultType="n_board">
+   <![CDATA[ 
+      SELECT * FROM likeBoard WHERE rnum>=#{pageNum}*9-8 AND rnum<=#{pageNum}*9
+      ]]>
+   </select>
+   <!-- 최신순 게시글 리스트  -->
+   <select id="getNewBoardList" parameterType="int" resultType="n_board">
+   <![CDATA[ 
+      SELECT * FROM newBoard WHERE rnum>=#{pageNum}*9-8 AND rnum<=#{pageNum}*9
+      ]]>
+   </select>
+      <!-- 일반 게시판개수(codyShare)  -->
+   <select id="getAllBoard" resultType="int">
+   	SELECT COUNT(*) FROM board WHERE b_divide = 0
+   </select>
+   <!-- 댓글개수  -->
+   <select id="getComCount" parameterType="int" resultType="int">
+   	SELECT COUNT(*) FROM re_board WHERE b_num=#{bnum}
+   </select>
+   
+   <!-- 브랜드 게시판 인기순 -->
+   <select id="getBrandLikeBoardList" parameterType="int" resultType="b_board">
+   <![CDATA[ 
+      SELECT * FROM likeBrd WHERE rnum>=#{pageNum}*9-8 AND rnum<=#{pageNum}*9
+      ]]>
+   </select>
+   <!--브랜드 게시판 최신순 게시글  -->
+   <select id="getBrandNewBoardList" parameterType="int" resultType="b_board">
+   <![CDATA[ 
+      SELECT * FROM newBrd WHERE rnum>=#{pageNum}*9-8 AND rnum<=#{pageNum}*9
+      ]]>
+   </select>
+   <!-- 브랜드 게시판개수(cody)  -->
+   <select id="getBrandBoard" resultType="int">
+   	SELECT COUNT(*) FROM board WHERE b_divide = 1
+   </select>
+   
+   <!-- 게시글그림가져오기  -->
+   <select id="getPhotoShow" parameterType="int" resultType="String">
+   	SELECT ap_path FROM all_photo WHERE ap_num=(SELECT MIN(ap_num) FROM all_photo WHERE ap_pkNum=#{b_num})
+   </select>
+   <!-- 프로필그림 가져오기  -->
+   <select id="getPfofile" parameterType="String" resultType="String">
+   	SELECT sysname FROM pf_photo WHERE id=#{id}
+   </select>
+    <!-- 일반 글 상세보기  -->
+   <select id="getNorContents" parameterType="int" resultType="n_board">
+   	SELECT * FROM nb_joinV WHERE b_num=#{b_num}
+   </select>
+   <!-- 기업 글 상세보기  -->
+   <select id="getBrdContents" parameterType="int" resultType="b_board">
+   	SELECT * FROM brb_joinV WHERE b_num=#{b_num}
+   </select>
+   <!-- 댓글 리스트 가져오기  -->
+   <select id="getReplyList" parameterType="reply" resultType="reply">
+   SELECT * FROM re WHERE b_num = #{b_num}
+   </select>
+   <!-- 좋아요 했는지 체크  -->
+   <select id="getLikeChk" parameterType="n_board" resultType="int">
+   SELECT COUNT(*) FROM LiSc WHERE b_num=#{b_num} AND divide=1 AND id=#{id}
+   </select>
+   <!-- 스크랩 했는지 체크  -->
+   <select id="getScrabChk" parameterType="n_board" resultType="int">
+   SELECT COUNT(*) FROM LiSc WHERE b_num=#{b_num} AND divide=0 AND id=#{id}
+   </select>
+
+   <!-- 좋아요 하기  -->
+   <insert id="likeInsert" parameterType="lisc" useGeneratedKeys="true" keyProperty="sl_seq">
+   	INSERT INTO LiSc VALUES(sl_seq.NEXTVAL,#{b_num},#{id},1)
+   		<selectKey keyProperty="sl_seq" resultType="int" order="AFTER" >
+   			SELECT sl_seq.CURRVAL FROM DUAL
+   		</selectKey>
+   </insert>
+   
+   <!-- 좋아요 해제  -->
+   <delete id="likeDel" parameterType="lisc">
+   DELETE FROM LiSc WHERE id=#{id} AND divide=1
+   </delete>
+   
+   <!-- 스크랩 하기  -->
+   <insert id="scrapInsert" parameterType="lisc" useGeneratedKeys="true" keyProperty="sl_seq">
+   	INSERT INTO LiSc VALUES(sl_seq.NEXTVAL,#{b_num},#{id},0)
+   		<selectKey keyProperty="sl_seq" resultType="int" order="AFTER" >
+   			SELECT sl_seq.CURRVAL FROM DUAL
+   		</selectKey>
+   </insert>
+   
+   <!-- 스크랩 해제 -->
+   <delete id="scrapDel" parameterType="lisc">
+   DELETE FROM LiSc WHERE id=#{id} AND divide=0
+   </delete>
+   <!-- 댓글 작성 하기  -->
+   <insert id="bReplyWrite" parameterType="reply" useGeneratedKeys="true" keyProperty="re_num">
+   	INSERT INTO re_board VALUES(re_seq.NEXTVAL,#{b_num},#{id},#{re_content},SYSDATE,DEFAULT)
+   		<selectKey keyProperty="re_num" resultType="int" order="AFTER" >
+   			SELECT re_seq.CURRVAL FROM DUAL
+   		</selectKey>
+   </insert>
+   <!-- 댓글 삭제 하기 -->
+   <delete id="bReplyDel" parameterType="reply">
+   DELETE FROM re_board WHERE re_num=#{re_num} 
+   </delete>
+
+
+	<!-- 글 작성하기  -->
+	<insert id="bWrite" parameterType="n_Board" useGeneratedKeys="true" keyProperty="b_num">
+   	INSERT INTO board VALUES(bbs_seq.NEXTVAL,#{id},#{b_title},#{b_content},0)
+   		<selectKey keyProperty="b_num" resultType="int" order="AFTER" >
+   			SELECT bbs_seq.CURRVAL FROM DUAL
+   		</selectKey>
+   </insert>
+   <!-- 일반 고유게시판 정보 작성  -->
+   <insert id="bWriteNBoard" parameterType="n_Board">
+   	INSERT INTO n_board VALUES(#{b_num},#{hashtag},DEFAULT)
+   </insert>
+   <!-- 파일 등록  -->
+   <insert id="fileInsert" parameterType="map">
+  	INSERT INTO all_photo VALUES(ap_seq.NEXTVAL,#{oriName},#{sysName},#{ap_divide},#{ap_path},#{ap_pkNum})
+   </insert>
+   
+   <!-- 포스트 리스트 가져오기  -->
+   <select id="mPostList" parameterType="String" resultType="n_board">
+  	 SELECT * FROM bAllPhotoV WHERE ap_divide=0 AND id=#{id} ORDER BY b_num DESC
+  	</select>
+  	
+  	<!-- 스크랩 리스트 가져오기  -->
+  	<select id="mScrapList" parameterType="String" resultType="n_board">
+  	 SELECT * FROM sAllPhotoV WHERE id=#{id} ORDER BY sl_seq DESC
+  	</select>
+
+  	<!-- 검색에 해당하는 일반게시글 인기순 리스트 뽑아오기  -->
+	<select id="searchNormal"  resultType="allBoard">
+	<![CDATA[ 
+      SELECT * FROM likeNorPhotoV  WHERE hashtag LIKE '%'||#{search}||'%'
+      ]]>
+	</select>
+	
+	<!-- 검색에 해당하는 브랜드게시글 인기순 리스트 뽑아오기   -->
+	<select id="searchBrand"  resultType="allBoard">
+	<![CDATA[ 
+      SELECT * FROM likeBrdPhotoV  WHERE hashtag LIKE '%'||#{search}||'%'
+      ]]>
+	</select>
+
+	<!-- 검색어가 테이블에 저장되어있나  -->
+	<select id="chkSearch"  parameterType="String" resultType="int">
+      SELECT count(*) FROM pop_search WHERE search=#{search}
+	</select>
+	
+	<!-- 검색어 테이블에 저장  -->
+	<insert id="insertSearch"  parameterType="String" >
+      INSERT INTO pop_search VALUES(ser_seq.NEXTVAL,#{search},0)
+	</insert>
+	
+	<!-- 검색어 업데이트  -->
+	<update id="updateSearch"  parameterType="String" >
+      UPDATE pop_search SET s_count = s_count + 1 WHERE search=#{search}
+	</update>
+	
+	<!-- 인기 검색어  리스트  -->
+   <select id="getPopList" resultType="popSearch">
+   <![CDATA[ 
+      SELECT ROW_NUMBER() OVER(ORDER BY s_count DESC) AS rnum,search,s_count FROM pop_search
+      ]]>
+   </select>
+   
+   <!-- 일반 게시판 게시글 삭제기능  -->
+	<delete id="bDel"  parameterType="int">
+      	DELETE FROM board WHERE b_num=#{b_num}
+	</delete>
+	
+	<!-- 일반 게시글 수정하기  -->
+	<update id="bUpdate" parameterType="allBoard">
+   		UPDATE board SET b_content=#{b_content} WHERE b_num =#{b_num}
+   </update>
+   
+   <!-- 일반 게시판 고유정보 글 수정하기  -->
+	<update id="bUpdateNBoard" parameterType="allBoard">
+   		UPDATE n_board SET hashtag=#{hashtag} WHERE b_num =#{b_num}
+   </update>
+   
+   <!-- 게시판 사진 수정하기  -->
+	<update id="fileUpdate" parameterType="map">
+   		UPDATE all_photo SET oriName=#{oriName},sysName=#{sysName},ap_path=#{ap_path} WHERE ap_pkNum = #{ap_pkNum}
+   </update>
+   
+   <!-- 일반 게시글 사진 삭제기능  -->
+	<delete id="fileDel"  parameterType="int">
+      	DELETE FROM all_photo WHERE ap_pkNum=#{ap_pkNum} AND ap_divide = 0
+	</delete>
+
+	<!-- 브랜드 게시글 사진 삭제기능      근데 필요한가?-->
+	<delete id="brandFileDel"  parameterType="int">
+      	DELETE FROM all_photo WHERE ap_pkNum=#{ap_pkNum} AND ap_divide = 1
+	</delete>
+	
+	 <!-- 브랜드 게시판 고유정보 글 수정하기  -->
+	<update id="bUpdatebBoard" parameterType="allBoard">
+  	 	UPDATE br_board SET hashtag=#{hashtag} WHERE b_num =#{b_num}
+   </update>
+	
+	<!-- 좋아요 알림용 값 넣기  -->
+	<insert id="likeAlertIn"  parameterType="lisc" >
+      INSERT INTO alert VALUES(alert_seq.NEXTVAL,#{b_num},#{id},#{o_id},0,DEFAULT,#{sl_seq},SYSDATE)
+	</insert>
+	
+	<!-- 좋아요 해제시 알림 데이터에서 지우기  -->
+	<delete id="likeAlertDel"  parameterType="lisc">
+      	DELETE FROM alert WHERE b_num = #{b_num} AND id=#{id} AND divide=0
+	</delete>
+	
+	<!-- 스크랩 알림 값 넣기  -->
+	<insert id="scrapAlertIn"  parameterType="lisc" >
+      INSERT INTO alert VALUES(alert_seq.NEXTVAL,#{b_num},#{id},#{o_id},1,DEFAULT,#{sl_seq},SYSDATE)
+	</insert>
+	
+	<!-- 스크랩 해제시 알림 값 지우기  -->
+	<delete id="scrapAlertDel"  parameterType="lisc">
+      	DELETE FROM alert WHERE b_num = #{b_num} AND id=#{id} AND divide=1
+	</delete>
+	
+	<!-- 댓글 알림 값 넣기  -->
+	<insert id="bReplyAlertIn"  parameterType="reply" >
+      INSERT INTO alert VALUES(alert_seq.NEXTVAL,#{b_num},#{id},#{o_id},2,DEFAULT,#{re_num},SYSDATE)
+	</insert>
+	
+	<!-- 댓글 삭제시 알림 값 지우기  -->
+	<delete id="bReplyAlertDel"  parameterType="reply">
+      	DELETE FROM alert WHERE b_num = #{b_num} AND id=#{id} AND divide=2 AND o_seq = #{re_num}
+	</delete>
+	
+		<!-- 관리자가 코드 글 작성하기 -->
+	<insert id="boardWrite1" parameterType="b_board" >
+		insert into board values(bbs_seq.nextval,#{id},#{b_title},#{b_content},1)
+	</insert>
+	<insert id="boardWrite2" parameterType="b_board" keyProperty="ba_num" useGeneratedKeys="true">
+		insert into br_board values(bbs_seq.CURRVAL,#{br_sit},#{br_divide},#{br_color},#{br_brand},#{hashtag},sysdate)
+		<selectKey resultType="int" keyProperty="b_num" order="AFTER">
+			<!-- after 위에 insert 쿼리문 다음에 -->
+			SELECT bbs_seq.CURRVAL FROM DUAL 
+		</selectKey>
+	</insert>
+	<insert id="boardWrite3" parameterType="photo">
+		insert into all_photo values(ap_seq.nextval,#{oriName},#{sysName},#{ap_divide},#{ap_path},#{ap_pkNum})
+	</insert>
+	
+	<!-- 아이디 찾아오기  -->
+	<select id="getId"  parameterType="String" resultType="String">
+      SELECT id FROM member WHERE nickname=#{brand}
+	</select>
+	
+	
+	<!-- 게시글 전체 개수 가져오기  -->
+	<select id="getAllBrBoard" resultType="int">
+      SELECT COUNT(*) FROM brb_joinV
+	</select>
+	
+	
+	<!-- 검색조건 유지 + 중복해서 검색해오기 -->
+   
+    <select id="multiSearch" parameterType="map" resultType="b_board">
+
+    SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY 
+    <if test='num !=0 '>
+    b_num DESC
+    </if>
+   	<if test='num ==0 '>   
+        likeC DESC NULLS LAST
+   	 </if>
+    ) AS rnum,brb_joinV.* FROM brb_joinV WHERE b_divide=1 
+  
+      
+      <if test="!br_sit.isEmpty ">      <!--    br_sit 에 값이 있다 -->
+         AND br_sit LIKE '%'||#{br_sit}||'%'
+      </if>
+      
+      <if test='br_divideSize !=0 '>   
+         AND REGEXP_LIKE(br_divide,
+         <foreach collection="br_divide" item="br_divide" index="index"
+            separator="||" close=")">
+                #{br_divide}
+         </foreach>
+      </if>
+      
+   <!--    "br_color !='' or br_color.isEmpty -->
+      <if test='br_colorSize !=0 '>   
+         AND REGEXP_LIKE(br_color,
+         <foreach collection="br_color" item="br_color" index="index"
+             separator="||" close=")">
+                   #{br_color}
+         </foreach>
+      </if>
+ 
+      <if test='br_brandSize !=0 '>   
+         AND REGEXP_LIKE(br_brand,
+         <foreach collection="br_brand" item="br_brand" index="index"
+             separator="||" close=")">
+                #{br_brand}
+         </foreach>
+      </if>
+
+	
+     	 <![CDATA[ 
+     	 ) WHERE rnum>=#{pageNum}*9-8 AND rnum<=#{pageNum}*9
+     	    ]]>
+   </select> 
+   
+   
+   
+   
+</mapper>
+	

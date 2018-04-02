@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- memberMapper.xml : 회원관련 쿼리문 -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.dao.AdminDao">
+
+		<!--밴 테이블에 있는 회원들 탈퇴가 아닌회원  -->
+	<select id="aBanInfo1" resultType="banMember">
+		select * from banmV where ban_num in (select max(ban_num) from banmV group by id,ban_leave having ban_leave=0)
+	</select>
+	
+		<!--밴 테이블에 있는 회원들 탈퇴인 회원  -->
+	<select id="aBanInfo2" resultType="banMember">
+		select * from banmV where ban_num in (select max(ban_num) from banmV group by id,ban_leave having ban_leave=1)
+	</select>
+	
+		<!-- 전체중 밴테이블에 없는 사람 -->
+	<select id="exceptMem" resultType="n_member">
+		SELECT m.id,m.nickname,m.intro FROM member m WHERE m.state=0 and NOT EXISTS 
+			(SELECT 1 FROM ban_member b WHERE m.id = b.id)
+	</select>
+<!-- 여기까지 전체 멤버 리스트 출력 -->	
+
+		<!-- 밴기록 없는 일반회원 검색 -->
+	<select id="aMemberSearch" parameterType="String" resultType="n_member">
+		SELECT * FROM mn_joinv m
+    		WHERE m.state=0 and nickname LIKE '%'||#{keyword}||'%' and NOT EXISTS 
+   			 (SELECT 1 FROM nBanV b WHERE m.id = b.id)
+	</select>
+	
+		<!-- 밴기록 있는 일반회원 특정 멤버 검색 -->
+	<select id="aMemberSearch2" parameterType="String" resultType="banMember">		
+		<![CDATA[SELECT distinct * FROM banmV 
+			WHERE ban_leave=0 and nickname LIKE '%'||#{keyword}||'%' and ban_stop < to_date(sysdate) and bcnt<3]]>
+	</select>
+	
+		<!-- 밴기록 있는 일반회원 전체 -->
+	<select id="aMemberSearch3" resultType="banMember">
+		<![CDATA[SELECT distinct * FROM banmV 
+			WHERE ban_leave=0 and ban_stop < to_date(sysdate) and bcnt<3
+				and ban_num in (select max(ban_num) from banmV group by id,ban_leave having ban_leave=0)]]>
+	</select>
+	
+		<!-- 밴상태인 회원 중 검색 -->
+	<select id="aMemberSearch4"  parameterType="String" resultType="banMember">
+		<![CDATA[SELECT distinct * FROM banmv WHERE (ban_leave=0 and
+   			 ban_stop > to_date(sysdate) and nickname LIKE '%'||#{keyword}||'%' and ban_num in (select max(ban_num) from banmV group by id,ban_leave having ban_leave=0)) 
+   			 	or (nickname LIKE '%'||#{keyword}||'%' and (ban_num in (select max(ban_num) from banmV group by id,ban_leave having ban_leave=0) and bcnt=3 ))]]>
+	</select>
+	
+		<!-- 밴상태인 회원 -->
+	<select id="aMemberSearch5" resultType="banMember">
+		<![CDATA[SELECT distinct * FROM banmv 
+			WHERE (ban_num in (select max(ban_num) from banmV group by id,ban_leave having ban_leave=0) and ban_stop > to_date(sysdate)) 
+				or (ban_num in (select max(ban_num) from banmV group by id,ban_leave having ban_leave=0) and bcnt=3)]]>
+	</select>
+	
+		<!-- 탈퇴 상태인 회원 중 검색 -->
+	<select id="aMemberSearch6"  parameterType="String" resultType="banMember">
+		SELECT * FROM banmV WHERE ban_leave=1 and nickname LIKE '%'||#{keyword}||'%' order by ban_stop desc
+	</select>
+	
+		<!-- 탈퇴 상태인 회원 -->
+	<select id="aMemberSearch7" resultType="banMember">
+		SELECT * FROM banmV WHERE ban_leave=1 order by ban_stop desc 
+	</select>
+	
+	<!-- 밴테이블에 횟수 구하기 -->
+	<select id="banCount" parameterType="String" resultType="int">
+		select count(*) from (select id, count(id) as cnt from banmV group by id,ban_leave having ban_leave=0) a 
+        	where a.id=#{id}
+	</select>
+	
+	<!-- 회원 정지시키기 -->
+	<insert id="aMemberBan" parameterType="banMember">
+		insert into ban_member values(ban_seq.nextval,#{id},sysdate, sysdate+3,#{ban_reason},0)
+	</insert>
+	
+	<!-- 회원 정지시키기2 -->
+	<insert id="aMemberBan2" parameterType="banMember">
+		insert into ban_member values(ban_seq.nextval,#{id},sysdate, sysdate+7,#{ban_reason},0)
+	</insert>
+	
+	<!-- 회원 정지시키기3 -->
+	<insert id="aMemberBan3" parameterType="banMember">
+		insert into ban_member values(ban_seq.nextval,#{id},sysdate, ADD_MONTHS(sysdate,1200),#{ban_reason},0)
+	</insert>
+	
+	<!-- 회원정지풀어주기-->
+	<update id="aMemberRemove" parameterType="banMember">
+		update ban_member set ban_stop=sysdate-1 where id=#{id}
+	</update>
+	
+	<!-- 정지상세내역 -->
+	<select id="banDetail" parameterType="banMember" resultType="banMember">
+		select * from banmV where ban_leave=0 and id=#{id} order by ban_num
+	</select>
+	
+		<!-- 처리안된 배너 글 갯수 -->
+	<select id="getBoardCount" resultType="int">
+		select count(*) from bab_joinV 
+			where ap_pkNum=ba_num and ba_handle=0 and b_divide=3
+	</select>
+		<!-- 처리안된 배너 리스트 -->
+	<select id="getBoardList" parameterType="banner_Board" resultType="banner_Board">
+		SELECT * from bab_joinV where ap_divide=3 and ba_handle=0 and b_divide=3
+	</select>
+	
+		<!-- 배너 처리하기 => ba_handle을 1로 바꾸기 -->
+	<update id="bannerUpdate" parameterType="int">
+		update ba_board set ba_handle=1 where ba_num=#{ba_num}
+	</update>
+	
+		<!-- 제휴신청 리스트 가져오기 -->
+	<select id="getAllianceList" resultType="req_msg">
+		select * from reqV where c_agree=1
+	</select>
+	
+		<!-- 제휴신청 처리하기 => agree을 1->2로 바꾸기 -->
+	<update id="approval" parameterType="String">
+		update c_member set c_agree=2 where id=#{id}
+	</update>
+	
+	<!-- 제휴신청 처리하기 => agree을 1->0로 바꾸기 -->
+	<update id="rejection" parameterType="String">
+		update c_member set c_agree=0 where id=#{id}
+	</update>
+	
+		<!-- c_request에서 삭제 -->
+	<delete id="reqDel" parameterType="String">
+		DELETE FROM c_request WHERE id=#{id}
+	</delete>
+	
+	<!-- 신고함 리스트 가져오기 -->
+	<select id="getReportList" resultType="qnab">
+		SELECT * FROM report_join
+	</select>
+	
+	<!-- 신고 대상자의 당한 내역 -->
+	<select id="aReportRecord" parameterType="qnab" resultType="qnab">
+		SELECT * FROM report_join WHERE rp_oid=#{rp_oid}
+	</select>
+	
+	<!-- 신고 내역 상세 보기 -->
+	<select id="aReportDetail" parameterType="qnab" resultType="qnab">
+		SELECT * FROM report_join WHERE b_num=#{b_num}
+	</select>
+	
+	<!-- 신고자 닉네임 가져오기 -->
+	<select id="getNickname" parameterType="String" resultType="String">
+		SELECT nickName FROM member WHERE id=#{id}
+	</select>
+	
+	<!-- 신고 공통 게시글 삭제 -->
+	<delete id="reportBoardDel" parameterType="String">
+		DELETE FROM board WHERE b_num = #{b_num}
+	</delete>
+	
+	<!-- 신고 큐&에이 삭제 -->
+	<delete id="reportQnaDel" parameterType="String">
+		DELETE FROM qna_board WHERE b_num = #{b_num}
+	</delete>
+
+	<!-- 밴기록있는 기업회원 가져오기 -->
+	<select id="aCBanInfo" resultType="c_member">
+		select * from cMemBanV where ban_num in (select max(ban_num) from cMemBanV group by id)
+	</select>
+	
+	<!--밴기록없는 기업회원 가져오기 -->
+	<select id="exceptCMem" resultType="c_member">
+		SELECT * FROM mc_joinV m WHERE m.state=1 and NOT EXISTS 
+			(SELECT 1 FROM ban_member b WHERE m.id = b.id)
+	</select>
+	
+		<!-- 기업회원 영구정지 -->
+	<insert id="aCMemberBan" parameterType="banMember">
+		insert into ban_member values(ban_seq.nextval,#{id},sysdate, ADD_MONTHS(sysdate,1200),0,0)
+	</insert>
+	
+		<!-- 기업회원 정지풀어주기 -->
+
+	<delete id="aCMemberCancel" parameterType="banMember">
+		delete from ban_member where id=#{id}
+	</delete>
+	<!--삭제할 글 갯수 가져오기 -->
+	<select id="aComListCount" resultType="int" parameterType="banMember">
+		select count(*) from brb_joinV where id=#{id}
+	</select>
+	
+		<!-- 기업회원 글삭제 -->
+	<delete id="recordDelete" parameterType="banMember">
+		delete from board where id=#{id}
+	</delete>
+	
+	<!--밴기록없는 기업회원 검색 -->
+	<select id="cMemSearch"  parameterType="String" resultType="c_member">
+		SELECT m.id,m.nickname,m.intro,m.email,c.c_name FROM member m ,c_member c
+			WHERE nickname LIKE '%'||#{keyword}||'%' and m.state=1 and m.id=c.id and
+				NOT EXISTS (SELECT 1 FROM ban_member b WHERE m.id = b.id)
+	</select>
+	
+			<!-- 밴기록 있는 일반기업회원 중 특정 멤버 검색 -->
+	<select id="cMemSearch2" parameterType="String" resultType="banMember">		
+		<![CDATA[SELECT distinct * FROM cMemBanV 
+			WHERE  nickname LIKE '%'||#{keyword}||'%' and ban_stop < to_date(sysdate)]]>
+	</select>
+	
+		<!-- 밴기록 있는 일반기업회원 전체 -->
+	<select id="cMemSearch3"  resultType="banMember">		
+		<![CDATA[SELECT distinct * FROM cMemBanV 
+			WHERE   ban_stop < to_date(sysdate)]]>
+	</select>
+	
+		<!-- 밴상태인 기업회원 중 특정 멤버 검색 -->
+	<select id="cMemSearch4" parameterType="String" resultType="banMember">		
+		<![CDATA[SELECT distinct * FROM cMemBanV 
+			WHERE  nickname LIKE '%'||#{keyword}||'%' and ban_stop > to_date(sysdate)]]>
+	</select>
+
+	<!-- 제휴회사 코디 신청 리스트 가져오기 -->
+	<select id="aComCodyList"  resultType="coordiSend">
+		SELECT * FROM cdsV
+	</select>
+	
+	<!-- 제휴회사 코디 상세보기1 -->
+	<select id="aComCodyDetail"  resultType="photo">
+		SELECT * FROM all_photo WHERE ap_divide = 2 AND ap_pkNum = #{cd_num}
+	</select>
+	
+	<!-- 제휴회사 코디 상세보기2 -->
+	<select id="aComCodyD"  parameterType="coordisend" resultType="coordisend">
+		SELECT * FROM cd_send WHERE  cd_num = #{cd_num}
+	</select>
+	
+	<!-- 코디 읽기 표시 -->
+	<update id="aCodyReadUpdate" parameterType="coordisend">
+		UPDATE cd_send SET cd_read = 1 WHERE cd_num = #{cd_num}
+	</update>
+	
+			<!--제휴중인 기업리스트 가져오기  -->
+	<select id="getList" resultType="banMember">
+		select * from mc_joinV where state=1 and c_agree=2
+	</select>
+
+		<!--관리자가 작성한 코디글 상세보기 -->
+	<!-- 	글 번호(pk)받아와서 파라미터값으로 입력해야함 -->
+	<select id="brandDetail"  parameterType="int" resultType="b_board">
+		SELECT * FROM brb_join WHERE b_num = #{bnum}
+	</select>
+	
+	<!-- 진행중 리스트  -->
+	<select id="getBannerIng" resultType="banner_Board">
+		<![CDATA[
+		SELECT * FROM bab_joinV WHERE ba_start <= sysdate AND sysdate <= ba_stop AND ba_handle = 1 ORDER BY ba_start DESC
+				]]>
+	</select>
+	
+	<!-- 진행 예정 리스트  -->
+	<select id="getBannerFuture" resultType="banner_Board">
+		<![CDATA[
+		SELECT * FROM bab_joinV WHERE ba_start >= sysdate AND sysdate <= ba_stop AND ba_handle = 1 ORDER BY ba_start DESC
+				]]>
+	</select>
+	
+	<!-- 종료된 리스트  -->
+	<select id="getBannerEnd" resultType="banner_Board">
+		<![CDATA[
+		SELECT * FROM bab_joinV WHERE sysdate >ba_stop ORDER BY ba_stop DESC
+				]]>
+	</select>
+	
+	<!-- 배너 공통 테이블삭제 하기(내리기) -->
+	<delete id="bannerBdel" parameterType="int">
+		DELETE FROM board WHERE b_num = #{b_num}
+	</delete>
+	
+	<!-- 배너테이블 삭제 하기(내리기) -->
+	<delete id="bannerDel" parameterType="int">
+		DELETE FROM ba_board WHERE ba_num = #{ba_num}
+	</delete>
+	
+	<!-- 해당 b_num에 딸려있는 배너 개수 가져오기  -->
+	<select id="bannerChk" parameterType="int" resultType="int">
+		SELECT COUNT(*) FROM ba_board WHERE b_num=#{b_num}
+	</select>
+<!-- <select id="access" parameterType="member" resultType="int">
+
+	<insert id="memberInsert" parameterType="member" >insert는 반환값을 성공시 1을 반환해 주기 때문에 resultType을 따로 써줄 필요없음 
+		INSERT INTO m VALUES(#{m_id},#{m_pwd},#{m_name},#{m_birth},#{m_phone},DEFAULT)
+	</insert>
+-->
+</mapper>

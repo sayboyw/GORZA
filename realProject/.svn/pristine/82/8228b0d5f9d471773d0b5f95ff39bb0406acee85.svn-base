@@ -1,0 +1,64 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>약관동의 페이지</title>
+		<script type="text/javascript" src="resources/js/jquery-2.1.1.js"></script>
+		<style>
+			div {
+				border: 1px solid black;
+			}
+		</style>
+	</head>
+	<body>
+		<form name="joinForm" id="joinForm" action="joinF" method="get">
+			<div>
+				<p>약관1</p>
+			</div>
+			<input type="checkbox" id="mAgree1" name="mAgree" value="0">위 약관에 동의 합니다.
+		
+			<div>
+				<p>약관2</p>
+			</div>
+			<input type="checkbox" id="mAgree2" name="mAgree2" value="0">위 약관에 동의 합니다.
+	
+		
+			<input type="checkbox" id="allAgree" name="allAgree">전체 약관에 동의합니다.
+			
+			<input type="button" name="yes" onclick="agreeYes()" value="동의">
+			<input type="button" name="cancle" onclick="agreeNo()" value="미동의">	
+		</form>
+	</body>
+	<script>
+		//전체 동의
+		$(function() { 
+			$("#allAgree").click(function() { 
+				if($("#allAgree").prop("checked")) { 
+					$("input[type=checkbox]").prop("checked",true); 
+				} else { 
+					$("input[type=checkbox]").prop("checked",false);
+					} 
+				}); 
+			});
+
+		//동의 버튼
+		function agreeYes() {
+			
+			if($("#mAgree1").prop("checked") == true && $("#mAgree2").prop("checked") ==true) {
+				$("#joinForm").submit();	
+			}else{
+				alert("모든 약관을 동의하여주세요.");
+			}
+		}
+		
+		var state = "${sessionScope.state}"
+		console.log(state);
+		
+		//취소 버튼
+		function agreeNo() {
+			location.href="./";			
+		}
+	</script>
+</html>

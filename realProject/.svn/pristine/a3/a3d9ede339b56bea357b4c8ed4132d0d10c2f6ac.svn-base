@@ -1,0 +1,116 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="author" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<script type="text/javascript" src="resources/js/jquery-2.1.1.js"></script>
+
+<link rel="stylesheet" href="resources/css/bootstrap.min.css">
+<link rel="stylesheet" href="resources/css/font-awesome.min.css">
+
+<!-- Main css -->
+<link rel="stylesheet" href="resources/css/style.css">
+<link href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,700" rel="stylesheet">
+	
+
+<style>
+
+#closeButton2 {
+   position: absolute;
+   top: 15%;
+   text-align: center;
+   left: 90%
+	}
+				.navbar-nav{
+			float: none;
+			}
+</style>
+
+</head>
+<body>
+	<h4>댓글 전체보기</h4>
+<!-- 	   <div align="center" style="margin-bottom: 5px;height: 20px;" id="closeButton2">
+   <a id='close' href='#'  class='btn btn-default' onclick='closePop2()' >닫기</a>
+   </div> -->
+	<table id="replyArea2">
+      <tr>
+         <th style="text-align: center">작성자</th>
+         <th style="text-align: center">내용</th>
+         <th style="text-align: center">작성날짜</th>
+         <th></th>
+      </tr>
+      <c:forEach items="${rlist }" var="rlist" >
+      <tr>
+         <td><a href="myStyle?nickName=${rlist.nickName}">${rlist.nickName}</a></td>
+         <td>${rlist.re_content }</td>
+         <td>${rlist.re_date }</td>
+         <c:if test="${rlist.id==sessionScope.mb.id}">
+         <td><a href="#" onclick='bReUpdatF2(${rlist.re_num})'>수정</a>&nbsp;&nbsp;<a href="#" onclick='bReplyDel2(${rlist.re_num })'>삭제</a></td>
+         </c:if>
+      </tr>
+      </c:forEach>
+   </table>
+
+</body>
+<script>
+function bReplyDel2(re_num){//댓글 삭제기능
+	   
+    console.log("알이넘 : "+re_num);
+    console.log("비넘 : "+b_num);
+    
+    $.ajax({
+        type : 'get',
+        url : 'bReplyDel',
+        data : {
+      	  b_num : b_num,
+           re_num : re_num
+        },
+        dataType : 'JSON',
+        success : function(data) {
+           console.log(data);
+           $("#replyArea2").html("");
+           var rListLength = data.rlist.length; 
+           var contxt = ""12
+           contxt +="<tr><th style='text-align:center'>작성자</th><th style='text-align:center'>내용</th><th style='text-align:center'>작성날짜</th><th></th></tr>";
+              for (var i = 0; i <rListLength; i++) {
+                 contxt += "<tr>";
+                 contxt += "<td>"+data.rlist[i].nickName+"</td>";
+                 contxt += "<td>"+data.rlist[i].re_content+"</td>"
+                 contxt += "<td>"+data.rlist[i].re_date+"</td>";
+                 if(data.rlist[i].id==sessionId){
+                 contxt +=   "<td><a href='#' onclick='bReUpdatF2("+data.rlist[i].re_num+")'>수정</a>&nbsp;&nbsp;<a href='#' onclick='bReplyDel2("+data.rlist[i].re_num+")'>삭제</a></td>";
+                 }
+                 contxt += "</tr>";
+              }
+              
+              $("#replyArea2").append(contxt);
+        },
+        error : function(e) {
+           alert("응안돼");
+           console.log(e);
+        }
+     });
+    
+ }
+ 
+$("#bg_layer").click(function(){
+	   closePop2();
+ });
+ 
+	function closePop2(){
+	    $("#articleView_layer2").removeClass("open2");
+	    detailChk(b_num,sessionId);
+	 }
+	
+
+
+</script>
+</html>

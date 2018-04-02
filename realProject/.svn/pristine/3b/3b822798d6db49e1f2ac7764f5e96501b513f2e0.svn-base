@@ -1,0 +1,278 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>기업-제휴신청페이지</title>
+<script type="text/javascript" src="resources/js/jquery-2.1.1.js"></script>
+<script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
+<!-- 다음 주소api -->
+<link rel="stylesheet" href="resources/css/bootstrap.min.css">
+<link rel="stylesheet" href="resources/css/font-awesome.min.css">
+
+<!-- Main css -->
+<link rel="stylesheet" href="resources/css/style.css">
+<link
+	href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,700"
+	rel="stylesheet">
+
+<style>
+	.area {
+		margin: 5px 5px;
+		padding: 5px 5px;
+		width: 97.7%;
+	}
+	#writeFarea {
+		margin: auto;
+		border: 20px solid #8794A3;
+		width: 32%;
+		height: 87%;
+		margin-top: 20px;
+		margin-bottom: 100px;
+	}
+	#hashtag {
+		height: 8%;
+		word-spacing: inherit;
+	}
+	#b_title {
+		margin-top: 3%;
+	}
+	#btnArea {
+		padding-top: 50px;
+		text-align: right;
+		padding-right: 5px;
+	}
+	#container {
+		border-radius: 5px;
+		padding: 10px;
+	}
+	.td1 {
+		width: 20%;
+	}
+	.td2 {
+		padding-left: 5%;
+	}
+	#roadAddress{
+		width : 70%;
+	}
+	#detailAddress{
+		width : 100%;
+	}
+</style>
+</head>
+<body>
+	<jsp:include page="loginBox.jsp" />
+
+	<div id="writeFarea" style="margin-top: 6%;" >
+		<form style="padding: 20px" action="cRequestForm" method="post"
+			id="cRequestForm" name="form">
+			<div class="section-title">
+				<h3 style="text-align: center; font-size: 22px">제휴회사신청하기</h3>
+			</div>
+				<input class="area" type="text" name="brand" id = "brandName"  placeholder="회사(기업명)을 입력해주세요" maxlength="15" />
+				
+				<input class="area" type="text" id="cname" name="delegator" placeholder="대표자를 입력해주세요"  maxlength="10"/>
+				
+				<input class="area" placeholder="기업 전화번호를 입력해주세요" type="text" id="c_tel" name="c_tel" maxlength="11" />
+				
+				<input placeholder="기업 이메일" type="text" class="area" name="str_email01" id="str_email01" style="width: 20%;">@
+				
+				<input type="text" name="str_email02" id="str_email02" style="width: 20%;" disabled value="naver.com"> 
+					<select style="width: 25%; margin-right: 10px;" name="selectEmail" id="selectEmail">
+						<option value="1">직접입력</option>
+						<option value="naver.com" selected>naver.com</option>
+						<option value="hanmail.net">hanmail.net</option>
+						<option value="hotmail.com">hotmail.com</option>
+						<option value="nate.com">nate.com</option>
+						<option value="yahoo.co.kr">yahoo.co.kr</option>
+						<option value="gmail.com">gmail.com</option>
+					</select>
+					
+				<input  class="area" type="text" id="postcode"name="postcode" placeholder="우편번호" /> 
+					
+				<input type="button" class="btn btn-default" onclick="execDaumPostcode()" value="우편번호 찾기"><br /> 
+				
+				<input type="text" id="roadAddress" name="roadAddress" placeholder="도로명주소" /> 
+				
+				<input type="text" id="detailAddress" name="detailAddress" placeholder="상세주소를 적어주세요" /> 
+					
+				<span id="guide" style="color: #999"></span>
+				
+				<textarea class="area" id="require" rows="10" cols="30" placeholder="신청/문의사항" style="resize: vertical;" name="c_content"></textarea>
+					 <!-- 좌우는 안되고 상하조절만 가능 -->
+					<br/>
+						
+				<div style="width: 100%; text-align: center;">
+					<br/>
+					<input type="button" class="btn btn-default" id="send" value="신청" /> 
+					<input type="button" id="cancel" class="btn btn-default" value="취소" />
+				</div>
+		</form>
+	</div>
+	<jsp:include page="footer.jsp"/>
+</body>
+<script>
+		var telNum = /^[0-9]{8,11}$/; // 전화번호 검사식
+		var postNum = /^[0-9]{5,5}$/; // 우편번호 검사식
+		var hangeul = /[가-힣]/;
+		var mailCheck = /(?=.*[^a-zA-Z0-9] )(?=.*[0-9]).{6,10}$/;
+		var tel = $('#c_tel');
+		var cname =$("#cname");
+		var ra = $("#roadAddress");
+		var da =$("#detailAddres");
+		var brandName = $("#brandName");
+		var str_email = $("#str_email01");
+		var pCode = $("#postcode");
+		var dA = $("#detailAddress");
+		var req = $("#require");
+		
+		//전송 클릭시
+		$("#send").click(function(){
+			console.log("브랜드"+!brandName.val());
+			console.log("대표자"+!cname.val());
+			if(!brandName.val()){
+				alert("기업 이름을 입력해 주세요");
+				return false;
+			}if(!cname.val()){
+				alert("대표자를 입력해 주세요.");
+				return false;
+			}else{
+				if(!hangeul.test(cname.val())) {
+					alert("대표자명은 한글로 입력해야합니다.");
+					return false;
+				}
+		               
+			}if (!tel.val()){
+				alert("전화번호를 입력해 주세요");
+				return false;
+			}else  if (tel.val()){
+				if(telNum.test(tel.val()) != true) { // 전화번호 검사
+					alert('기업 전화번호는 숫자만 입력해 주세요.(8자 이상 11자 이하) ');
+					return false;
+				}
+			}if(!str_email.val()){
+				alert("이메일을 입력해 주세요");
+				return false;
+			}if(!pCode.val()){
+				alert("우편번호를 입력해 주세요");
+				return false;
+
+			}else{
+				if(postNum.test(pCode.val()) != true) { // 우편번호 검사
+					alert("우편번호는 5자리의 숫자입니다.");
+					return false;
+				}
+			}if(!dA.val()){
+				alert("상세주소를 입력해 주세요");
+				return false;
+			}if(!req.val()){
+				alert("문의사항 내용을 입력하세요.");
+				return false;
+			}else{
+			
+			$("#cRequestForm").submit();
+			}
+		});
+	
+		
+		var status = "${sessionScope.cm.c_agree}";
+		console.log(status);
+			//접근 제한
+
+		//이메일 입력방식 선택 
+		$('#selectEmail').change(function(){ 
+			$("#selectEmail option:selected").each(function () {
+				if($(this).val()== '1'){ //직접입력일 경우
+					$("#str_email02").val(''); //값 초기화 
+					$("#str_email02").attr("disabled",false); //활성화
+					 form.str_email02.focus();
+				}else{ //직접입력이 아닐경우 
+				$("#str_email02").val($(this).text()); //선택값 입력 
+				$("#str_email02").attr("disabled",true); //비활성화 
+				} 
+			});
+					
+		}); 
+		
+			/* 다음 지도 api */
+		function execDaumPostcode() {
+	        new daum.Postcode({
+	            oncomplete: function(data) {
+	                // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+	
+	                // 도로명 주소의 노출 규칙에 따라 주소를 조합한다.
+	                // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+	                var fullRoadAddr = data.roadAddress; // 도로명 주소 변수
+	                var extraRoadAddr = ''; // 도로명 조합형 주소 변수
+	
+	                // 법정동명이 있을 경우 추가한다. (법정리는 제외)
+	                // 법정동의 경우 마지막 문자가 "동/로/가"로 끝난다.
+	                if(data.bname !== '' && /[동|로|가]$/g.test(data.bname)){
+	                    extraRoadAddr += data.bname;
+	                }
+	                // 건물명이 있고, 공동주택일 경우 추가한다.
+	                if(data.buildingName !== '' && data.apartment === 'Y'){
+	                   extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+	                }
+	                // 도로명, 지번 조합형 주소가 있을 경우, 괄호까지 추가한 최종 문자열을 만든다.
+	                if(extraRoadAddr !== ''){
+	                    extraRoadAddr = ' (' + extraRoadAddr + ')';
+	                }
+	                // 도로명, 지번 주소의 유무에 따라 해당 조합형 주소를 추가한다.
+	                if(fullRoadAddr !== ''){
+	                    fullRoadAddr += extraRoadAddr;
+	                }
+	
+	                // 우편번호와 주소 정보를 해당 필드에 넣는다.
+	                document.getElementById('postcode').value = data.zonecode; //5자리 새우편번호 사용
+	                document.getElementById('roadAddress').value = fullRoadAddr;
+	                /* document.getElementById('jibunAddress').value = data.jibunAddress; */
+					//지번주소 자리 주석처리
+	                
+	                
+	                // 사용자가 '선택 안함'을 클릭한 경우, 예상 주소라는 표시를 해준다.
+	                if(data.autoRoadAddress) {
+	                    //예상되는 도로명 주소에 조합형 주소를 추가한다.
+	                    var expRoadAddr = data.autoRoadAddress + extraRoadAddr;
+	                    document.getElementById('guide').innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
+	
+	                } /* else if(data.autoJibunAddress) {
+	                    var expJibunAddr = data.autoJibunAddress;
+	                    document.getElementById('guide').innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
+	
+	                } */ else {
+	                    document.getElementById('guide').innerHTML = '';
+	                }
+	            }
+	        }).open();
+    	}
+			
+		$("#cancel").click(function(){
+			alert("제휴 신청을 취소합니다.");
+			lacation.href="./";
+			
+		});  
+				
+		$(document).ready(function(){
+			var sessionConfirm = "${sessionScope.cm.c_agree}";
+			console.log("기업 세션값(c_agree): "+sessionConfirm);
+			if(sessionConfirm !=0){
+				if(sessionConfirm==1){
+					alert("승인 대기중입니다.");
+					location.href="./";
+				}else if(sessionConfirm==2){
+					alert("이미 신청 완료되었습니다.");
+					location.href="./";
+				}
+			}
+		});
+		tel.keydown( function() {
+			if(event.keyCode==109 || event.keyCode==189) {
+				return false;
+			}
+		});
+	
+		cRequestForm
+		</script>
+</html>

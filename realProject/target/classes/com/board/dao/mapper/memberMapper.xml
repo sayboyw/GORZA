@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- memberMapper.xml : 회원관련 쿼리문 -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.dao.ImemberDao">
+	<!-- 암호화 비밀번호체크 -->
+	<select id="getSecurittyPwd" parameterType="n_member" resultType="int">
+		SELECT COUNT(*) FROM member WHERE id=#{id} AND pw=#{pw}
+	</select>
+	<!-- 로그인 체크(일단 임시) -->
+	<select id="mLogin" parameterType="String" resultType="n_member">
+		SELECT * FROM member WHERE id=#{id}
+	</select>
+	<!-- 정지정보내용 가져오기-->
+	<select id="getBanInfo" parameterType="String" resultType="banMember">
+		SELECT * FROM ban_member WHERE ban_num=(SELECT MAX(ban_num) FROM ban_member WHERE id=#{id})
+	</select>
+	<!-- 정지관련정보 체크-->
+	<select id="getBanChk" parameterType="String" resultType="int">
+		SELECT count(*) FROM ban_member WHERE id=#{id}
+	</select>
+	<!-- 기업정보 가져오기 -->
+	<select id="cMemberInfo" parameterType="String" resultType="c_member">
+		SELECT * FROM mc_joinV WHERE id=#{id}
+	</select>
+
+	<!-- 일반회원정보 가져오기 -->
+	<select id="nMemberInfo" parameterType="String" resultType="n_member">
+		SELECT * FROM n_member WHERE id=#{id}
+	</select>
+
+	<!-- 아이디가져오기 -->
+	<select id="getid" parameterType="String" resultType="String">
+		SELECT id FROM member WHERE 	nickName = #{nickName}
+	</select>
+	<!-- 상대아이디 가져오기  -->
+	<select id="getoid" parameterType="String" resultType="String">
+		SELECT o_id FROM member WHERE 	nickName = #{nickName}
+	</select>
+	<!-- 팔로워수띄우기 -->
+	<select id="getfollowerC" parameterType="String" resultType="int">
+		SELECT count(*) FROM follow WHERE o_id = #{id}
+	</select>
+	<!-- 팔로잉수띄우기 -->
+	<select id="getfollowingC" parameterType="String" resultType="int">
+		SELECT count(*) FROM follow WHERE id = #{id}
+	</select>
+	<!-- 팔로우리스트 -->
+	<select id="getfollowlist" parameterType="String" resultType="follow">
+		SELECT * FROM followerV WHERE o_id = #{id}
+	</select>
+	<!-- 팔로잉 리스트  -->
+	<select id="getfollowinglist" parameterType="String" resultType="follow">
+		SELECT * FROM followingV WHERE id = #{id}
+	</select>
+	<!-- 팔로워취소 -->
+	<delete id="followCancle" parameterType="String">
+		DELETE FROM follow WHERE o_id=#{id}
+	</delete>
+
+
+	<!-- 자기소개 가져오기 -->
+	<select id="getIntro" parameterType="String" resultType="n_member">
+		SELECT * FROM member WHERE nickName=#{nickName}
+	</select>
+	<!-- 개인정보 가져오기 -->
+	<select id="allInfo" parameterType="String" resultType="n_member">
+		SELECT * FROM mn_joinV WHERE nickName=#{nickName}
+	</select>
+
+	<!-- 팔로우했는지 체크 -->
+	<select id="followChk" parameterType="n_member" resultType="int">
+		SELECT COUNT(*) FROM followingV WHERE nickName=#{nickName} AND id=#{id}
+	</select>
+	<!-- 팔로우 하기  -->
+	<insert id="follow" parameterType="follow">
+		INSERT INTO follow VALUES(#{o_id},#{id},DEFAULT,SYSDATE)
+	</insert>
+	<!-- 팔로잉 해제하기  -->
+	<delete id="followingCancle" parameterType="follow">
+		DELETE FROM follow WHERE o_id=#{o_id} AND id=#{id}
+	</delete>
+	
+	<!-- 신고하기 공통게시글 입력  -->
+	<insert id="reportBoardInsert" parameterType="qnab" useGeneratedKeys="true" keyProperty="b_num">
+   	INSERT INTO board VALUES(bbs_seq.NEXTVAL,#{id},'신고합니다',#{b_content},2)
+   		<selectKey keyProperty="b_num" resultType="int" order="AFTER" >
+   			SELECT bbs_seq.CURRVAL FROM DUAL
+   		</selectKey>
+   </insert>
+   <!-- 신고하기 공통 입력  -->
+   <insert id="mReport" parameterType="qnab">
+		INSERT INTO qna_board VALUES(#{b_num},#{rp_reason},0,DEFAULT,#{rp_oid},null,null,null)
+	</insert>
+	<!-- 맞팔 상태 가져오기  -->
+	<select id="getFollowFollowMe" parameterType="follow" resultType="int">
+		SELECT count(*) FROM follow WHERE id=#{id} AND o_id=#{o_id}
+	</select>
+	
+	<!-- 메인화면 배너리스트 출력  -->
+	<select id="mainBannerList" resultType="banner_Board">
+		SELECT * FROM bab_join WHERE ba_handle = 1
+	</select>
+	<!-- 메인화면 브랜드 게시판 인기순 리스트 출력(3개)  -->
+	<select id="mainBrandList"  resultType="b_board">
+	<![CDATA[ 
+      SELECT * FROM likeBrdPhotoV WHERE rnum <=3
+      ]]>
+	</select>
+	<!-- 메인화면 일반 게시판 인기순 리스트 출력(3개)  -->
+	<select id="mainNormalList"  resultType="n_Board">
+	<![CDATA[ 
+      SELECT * FROM likeNorPhotoV WHERE rnum <=3
+      ]]>
+	</select>
+	
+	<!-- 프로필 사진 있나 체크  -->
+	<select id="proChk" parameterType="String" resultType="int">
+		SELECT count(*) FROM pf_photo WHERE id=#{id}
+	</select>
+	
+	<!-- 프로필 없으면 입력  -->
+	<insert id="proInsert" parameterType="map">
+		INSERT INTO pf_photo VALUES(pf_seq.NEXTVAL,#{id},#{oriName},#{sysName})
+	</insert>
+	
+	<!-- 프로필 있으면 업데이트  -->
+	<update id="proUpdate" parameterType="map">
+		UPDATE pf_photo SET oriName=#{oriName},sysName=#{sysName} WHERE id=#{id}
+	</update>
+	
+	<!-- 공통 테이블 수정 -->
+	<update id="mUpdate" parameterType="n_member">
+		UPDATE member SET pw=#{pw},intro=#{intro} where id=#{id}
+	</update>
+	
+	<!-- 일반 고유정보 테이블 수정 -->
+	<update id="mUpdate2" parameterType="n_member">
+		UPDATE n_member SET gender=#{gender},birth=#{birth} where id=#{id}
+	</update>
+	
+	<!-- 알림 카운트  -->
+	<select id="alertCount" parameterType="String" resultType="int">
+		SELECT fol.fCount + al.bCount as allCount 
+		FROM (SELECT count(*) as fCount FROM follow WHERE read=1 AND o_id=#{id}) fol, (SELECT count(*) bCount FROM alert WHERE o_id=#{id} AND read=1) al
+	</select>
+	
+	<!-- 회원탈퇴 -->
+		<insert id="memberLeave" parameterType="String">
+		insert into ban_member values(ban_seq.nextval,#{id},sysdate, ADD_MONTHS(sysdate,1),null,1)
+	</insert>
+	
+	<!-- 탈퇴해지 -->
+	<delete id="memberWelcome" parameterType="String">
+		DELETE FROM ban_member WHERE id=#{id} AND ban_leave=1
+	</delete>
+	
+	<!-- 마이페이지 탈퇴여부 체크 -->
+		<select id="myPagebanChk" parameterType="String" resultType="int">
+		SELECT count(*) FROM ban_member WHERE id=#{id} AND ban_leave=1
+	</select>
+	
+	<!-- 알림 리스트  -->
+	<select id="alertBList" parameterType="String" resultType="alert">
+		SELECT * FROM alertV WHERE o_id = #{id} ORDER BY a_date DESC
+	</select>
+	
+	<!-- 알림용 팔로우 리스트  -->
+	<select id="alertFList" parameterType="String" resultType="follow">
+		SELECT * FROM followerV WHERE o_id = #{id} ORDER BY f_date DESC
+	</select>
+	
+	<!-- 알림용 읽음 표시 -->
+	<update id="alertBUpdate" parameterType="String">
+		UPDATE alert SET read = 0 WHERE o_id =#{id}
+	</update>
+	
+	<!-- 팔로우 읽음 표시 -->
+	<update id="alertFUpdate" parameterType="String">
+		UPDATE follow SET read = 0 WHERE o_id =#{id}
+	</update>
+	
+	<!-- 해당 프로필 사진 가져오기  -->
+	<select id="getPfofile" parameterType="String" resultType="String">
+		SELECT sysName FROM pf_photo WHERE id=#{id}
+	</select>
+	
+	<!-- 해당 게시글 사진   -->
+	<select id="getBphoto" parameterType="int" resultType="String">
+		SELECT ap_path FROM all_photo WHERE ap_pkNum=#{b_num} AND ap_divide = 0
+	</select>
+	
+	<!-- <select id="access" parameterType="member" resultType="int">
+		SELECT COUNT(*) FROM m WHERE m_id=#{m_id} AND m_pwd=#{m_pwd}
+	</select>
+	<select id="getMemberInfo" parameterType="String" resultType="member">
+		SELECT * FROM MINFO WHERE m_id=#{m_id}
+	</select>
+	<insert id="memberInsert" parameterType="member" >insert는 반환값을 성공시 1을 반환해 주기 때문에 resultType을 따로 써줄 필요없음 
+		INSERT INTO m VALUES(#{m_id},#{m_pwd},#{m_name},#{m_birth},#{m_phone},DEFAULT)
+	</insert>
+	<select id="getSecurittyPwd" parameterType="String" resultType="String">
+		SELECT m_pwd FROM m WHERE m_id=#{m_id}
+	</select> -->
+	
+	
+	
+	<!-- 뱅비 -->
+	<!-- 아이디 중복체크 -->
+    <select id="idChk" parameterType="String" resultType="int">
+    	SELECT COUNT(*) FROM member WHERE id = #{id}
+    </select>
+    
+    <!-- 닉네임 중복체크 -->
+    <select id="nickChk" parameterType="String" resultType="int">
+    	SELECT COUNT(*) FROM member WHERE nickName = #{nickName}
+    </select>
+    
+    <!-- 일반 회원가입 -->
+    <insert id="mJoinFm" parameterType="com.board.bean.N_member">
+    	INSERT INTO member VALUES(#{id}, #{pw}, #{nickName}, null , #{emailAll}, 1, 0)
+    </insert>
+    <insert id="mJoinFm2" parameterType="com.board.bean.N_member">
+    	INSERT INTO n_member VALUES(#{id}, #{name}, #{gender}, #{birthAll}, #{pw_q}, #{pw_a})
+    </insert>
+    <!-- 프로필 사진 등록(회원가입시) -->
+    <insert id="mJoinProfile" parameterType="n_member">
+    	INSERT INTO pf_photo VALUES(pf_seq.NEXTVAL,#{id},'profile.png','profile.png')
+    </insert>
+    
+     <!-- 기업명 중복체크 -->
+    <select id="comNickChk" parameterType="String" resultType="int">
+    	SELECT COUNT(*) FROM member WHERE nickName = #{nickName}
+    </select>
+    
+    <!-- 기업 회원가입 -->
+    <insert id="comJoinI" parameterType="com.board.bean.C_member">
+    	INSERT INTO member VALUES(#{id}, #{pw}, #{nickName}, null, #{emailAll}, 1, 1)
+    </insert>
+    <insert id="comJoinI2" parameterType="com.board.bean.C_member">
+    	INSERT INTO c_member VALUES(#{id}, #{c_name}, #{c_num}, #{c_num2}, #{c_agree})
+    </insert>
+	<!-- 프로필 사진 등록(회원가입시) -->
+    <insert id="mComJoinP" parameterType="com.board.bean.C_member">
+    	INSERT INTO pf_photo VALUES(pf_seq.NEXTVAL,#{id},'profile.png','profile.png')
+    </insert>
+	<!-- 이메일 인증 -->
+	<!-- <update id="confirm" parameterType="com.board.bean.C_member">
+		UPDATE c_member SET approval_status = 'true' WHERE email = (SELECT email FROM member WHERE email=#{emailAll})
+	</update> -->
+    
+    
+    
+    
+    <!-- 아이디 찾기 -->
+    <select id="find_id" parameterType="String" resultType="String">
+		SELECT id FROM mn_joinV WHERE email = #{emailAll} AND name=#{name}
+	</select>
+	
+	<!-- 비밀번호 찾기 -->
+    <update id="update_pw" parameterType="n_member">
+		UPDATE member SET pw = #{pw} WHERE id = #{id}
+	</update>
+    
+    
+    <!-- 이메일 확인 -->
+    <select id="emailChk" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM member WHERE email = #{emailAll}
+	</select>
+	
+	 <!-- 비번 질문 확인 미완 -->
+    <select id="pwqChk" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM n_member WHERE pw_q = #{pw_q}
+	</select>
+	
+	 <!-- 비번 답변 확인 미완 -->
+    <select id="pwaChk" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM n_member WHERE pw_a = #{pw_a}
+	</select>
+	
+	
+
+</mapper>

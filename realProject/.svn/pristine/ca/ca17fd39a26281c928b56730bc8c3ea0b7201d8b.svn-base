@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mybatis  -->
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+<typeAliases><!-- 긴 경로 ex) com.board.bean.Dept 같은거 짧게 해주기 위함 -->
+	<!-- <typeAlias alias="dept" type="com.board.bean.Dept"/> -->
+	<!-- <package name="com.board.bean"/> -->
+	<typeAlias alias="alert" type="com.board.bean.Alert"/>
+	<typeAlias alias="b_board" type="com.board.bean.B_board"/>
+	<typeAlias alias="banMember" type="com.board.bean.BanMember"/>
+	<typeAlias alias="banner_Board" type="com.board.bean.Banner_Board"/>
+	<typeAlias alias="c_member" type="com.board.bean.C_member"/>
+	<typeAlias alias="coordiSend" type="com.board.bean.CoordiSend"/>
+	<typeAlias alias="follow" type="com.board.bean.Follow"/>
+	<typeAlias alias="lisc" type="com.board.bean.Lisc"/>
+	<typeAlias alias="n_Board" type="com.board.bean.N_Board"/>
+	<typeAlias alias="n_member" type="com.board.bean.N_member"/>
+	<typeAlias alias="photo" type="com.board.bean.Photo"/>
+	<typeAlias alias="qnaB" type="com.board.bean.QnaB"/>
+	<typeAlias alias="qnaRe" type="com.board.bean.QnaRe"/>
+	<typeAlias alias="reply" type="com.board.bean.Reply"/>
+	<typeAlias alias="req_msg" type="com.board.bean.Req_msg"/>
+	<typeAlias alias="reReply" type="com.board.bean.Rereply"/>
+	<typeAlias alias="allBoard" type="com.board.bean.All_board"/>
+	<typeAlias alias="popSearch" type="com.board.bean.PopSearch"/>
+	<typeAlias alias="notice" type="com.board.bean.Notice"/>
+	<typeAlias alias="search" type="com.board.bean.Search"/>
+</typeAliases>
+
+<!-- <mappers>
+	<mapper resource="com/board/dao/memberMapper.xml"/>
+	<mapper resource="com/board/dao/boardMapper.xml"/>
+</mappers> -->
+
+</configuration>
